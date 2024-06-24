@@ -10,7 +10,7 @@ import public Text.Parser
 import        Data.List
 import        Data.List.Views
 import        Data.List1
-import        Data.Strings
+import        Data.String
 
 import Debug.Trace
 
@@ -137,13 +137,13 @@ mutual
 
   forall_ : FileName -> IndentInfo -> Rule RawImp
   forall_ fname indents
-      = do keyword "forall"
-           commit
-           ns <- sepBy1 (symbol ",") unqualifiedName
-           let binders = map (\n => (Just (UN n), Implicit)) ns
-           symbol "."
-           scope <- typeExpr fname indents
-           pure (pibindAll Implicit binders scope)
+      = Core.do keyword "forall"
+                commit
+                ns <- sepBy1 (symbol ",") unqualifiedName
+                let binders = map (\n => (Just (UN n), Implicit)) ns
+                symbol "."
+                scope <- typeExpr fname indents
+                pure (pibindAll Implicit binders scope)
 
   implicitPi : FileName -> IndentInfo -> Rule RawImp
   implicitPi fname indents

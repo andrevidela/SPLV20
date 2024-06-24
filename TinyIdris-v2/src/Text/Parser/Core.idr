@@ -67,7 +67,7 @@ join {c1 = True} p = SeqEat p id
 ||| Give two alternative grammars. If both consume, the combination is
 ||| guaranteed to consume.
 export %inline
-(<|>) : {c1,c2 : Bool} -> 
+(<|>) : {c1,c2 : Bool} ->
         Grammar tok c1 ty ->
         Lazy (Grammar tok c2 ty) ->
         Grammar tok (c1 && c2) ty
@@ -119,6 +119,14 @@ export %inline
        Grammar tok (c1 || c2) b
 (*>) x y = map (const id) x <*> y
 
+export %inline
+(>>) : {c1, c2 : Bool} ->
+       Grammar tok c1 a ->
+       Grammar tok c2 b ->
+       Grammar tok (c1 || c2) b
+(>>) f g {c1 = True} = f >>= (\_ => g)
+(>>) f g {c1 = False} = f >>= (\_ => g)
+
 ||| Produce a grammar that can parse a different type of token by providing a
 ||| function converting the new token type into the original one.
 export
@@ -133,6 +141,10 @@ mapToken f Commit = Commit
 mapToken f (SeqEat act next) = SeqEat (mapToken f act) (\x => mapToken f (next x))
 mapToken f (SeqEmpty act next) = SeqEmpty (mapToken f act) (\x => mapToken f (next x))
 mapToken f (Alt x y) = Alt (mapToken f x) (mapToken f y)
+
+export %inline
+ignore : {c : _} -> Grammar b c ty -> Grammar b c ()
+ignore g = map (const ()) g
 
 ||| Always succeed with the given value.
 export %inline
@@ -187,9 +199,9 @@ data ParseResult : Type -> Type -> Type where
            (val : ty) -> (more : List tok) -> ParseResult tok ty
 
 mutual
-  doParse : (commit : Bool) -> 
+  doParse : (commit : Bool) ->
             (act : Grammar tok c ty) ->
-            (xs : List tok) -> 
+            (xs : List tok) ->
             ParseResult tok ty
   doParse com (Empty val) xs = Res com val xs
   doParse com (Fail fatal str) [] = Failure com fatal str []

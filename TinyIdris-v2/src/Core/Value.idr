@@ -20,7 +20,7 @@ mutual
   -- The head of a value: things you can apply arguments to
   public export
   data NHead : List Name -> Type where
-       NLocal : (idx : Nat) -> (0 p : IsVar name idx vars) ->
+       NLocal : forall name. (idx : Nat) -> (0 p : IsVar name idx vars) ->
                 NHead vars
        NRef   : NameType -> Name -> NHead vars
        NMeta  : Name -> List (Closure vars) -> NHead vars

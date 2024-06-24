@@ -73,7 +73,7 @@ data Pat : Type where
 
 export
 Show Pat where
-  show (PCon n t a args) = show n ++ show (t, a) ++ show args
+  show (PCon n t a args) = assert_total $ show n ++ show (t, a) ++ show args
   show (PLoc n) = "{" ++ show n ++ "}"
   show _ = "_"
 

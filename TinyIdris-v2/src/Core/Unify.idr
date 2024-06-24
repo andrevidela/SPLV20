@@ -50,7 +50,7 @@ solvedHole = MkUnifyResult [] True
 ufail : String -> Core a
 ufail msg = throw (GenericMsg msg)
 
-unifyArgs : (Unify tm, Quote tm) =>
+unifyArgs : {tm : _} -> (Unify tm, Quote tm) =>
             {vars : _} ->
             {auto c : Ref Ctxt Defs} ->
             {auto u : Ref UST UState} ->
@@ -178,7 +178,7 @@ data IVars : List Name -> List Name -> Type where
      ICons : Maybe (Var newvars) -> IVars vs newvars ->
              IVars (v :: vs) newvars
 
-Weaken (IVars vs) where
+{vs : _} -> Weaken (IVars vs) where
   weaken INil = INil
   weaken (ICons Nothing ts) = ICons Nothing (weaken ts)
   weaken (ICons (Just t) ts) = ICons (Just (weaken t)) (weaken ts)
@@ -208,11 +208,11 @@ instantiate {newvars} env mname mdef locs tm
          defs <- get Ctxt
          rhs <- mkDef locs INil tm ty
 
-         let newdef = record { definition = PMDef [] (STerm rhs) } mdef
+         let newdef = { definition := PMDef [] (STerm rhs) } mdef
          addDef mname newdef
          removeHole mname
   where
-    updateIVar : {v : Nat} ->
+    updateIVar : forall name. {v : Nat} ->
                  forall vs, newvars . IVars vs newvars -> (0 p : IsVar name v newvars) ->
                  Maybe (Var vs)
     updateIVar {v} (ICons Nothing rest) prf
@@ -304,7 +304,7 @@ mutual
                        empty <- clearDefs defs
                        tm <- quote empty env tmnf
                        case shrinkTerm tm submv of
-                            Nothing => 
+                            Nothing =>
                               -- Not well scoped, but it might be if we
                               -- normalise (TODO: Exercise)
                               postpone env (NApp (NMeta n margs) fargs) tmnf
@@ -396,22 +396,22 @@ retryGuess n
     = do defs <- get Ctxt
          case !(lookupDef n defs) of
               Nothing => pure False
-              Just gdef => 
+              Just gdef =>
                 case definition gdef of
                      Guess tm cs =>
                         do cs' <- traverse retry cs
                            let csAll = unionAll cs'
                            case constraints csAll of
                                 [] => -- fine now, complete the definition
-                                      do let gdef = record {
-                                                      definition = PMDef [] (STerm tm)
+                                      do let gdef = {
+                                                      definition := PMDef [] (STerm tm)
                                                     } gdef
                                          updateDef n (const gdef)
                                          pure True
                                 cs => -- still constraints, but might be new
                                       -- ones, so update the definition
-                                      do let gdef = record {
-                                                      definition = Guess tm cs
+                                      do let gdef = {
+                                                      definition := Guess tm cs
                                                     } gdef
                                          updateDef n (const gdef)
                                          pure False

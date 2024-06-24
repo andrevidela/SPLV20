@@ -14,7 +14,7 @@ import Data.Vect
 -- part will only be constructed when needed, because it's in Core.
 public export
 data Glued : List Name -> Type where
-     MkGlue : Core (Term vars) -> 
+     MkGlue : Core (Term vars) ->
               (Ref Ctxt Defs -> Core (NF vars)) -> Glued vars
 
 export
@@ -39,7 +39,7 @@ data CaseResult a
      = Result a
      | NoMatch -- case alternative didn't match anything
      | GotStuck -- alternative matched, but got stuck later
- 
+
 -- So that we can call 'eval' with new defs
 evalTop : {free, vars : _} ->
           Defs -> Env Term free -> LocalEnv free vars ->
@@ -75,7 +75,7 @@ parameters (defs : Defs)
     evalLocClosure env stk (MkClosure locs' env' tm')
         = eval env' locs' tm' stk
 
-    evalLocal : {free, vars : _} ->
+    evalLocal : forall name. {free, vars : _} ->
                 Env Term free ->
                 (idx : Nat) -> (0 p : IsVar name idx (vars ++ free)) ->
                 Stack free ->
