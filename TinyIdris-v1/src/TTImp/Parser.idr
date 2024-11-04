@@ -10,7 +10,7 @@ import public Text.Parser
 import        Data.List
 import        Data.List.Views
 import        Data.List1
-import        Data.Strings
+import        Data.String
 
 import Debug.Trace
 
@@ -41,8 +41,8 @@ collectDefs : List ImpDecl -> List ImpDecl
 
 atom : FileName -> Rule RawImp
 atom fname
-    = do exactIdent "Type"
-         pure IType
+    = exactIdent "Type"
+      *> pure IType
 --   <|> do start <- location
 --          symbol "_"
 --          end <- location
@@ -56,8 +56,8 @@ getRight (Right v) = Just v
 
 bindSymbol : Rule PiInfo
 bindSymbol
-    = do symbol "->"
-         pure Explicit
+    = symbol "->"
+      *> pure Explicit
 
 mutual
   appExpr : FileName -> IndentInfo -> Rule RawImp
@@ -68,8 +68,8 @@ mutual
 
   argExpr : FileName -> IndentInfo -> Rule RawImp
   argExpr fname indents
-      = do continue indents
-           simpleExpr fname indents
+      = continue indents
+        *> simpleExpr fname indents
 
   simpleExpr : FileName -> IndentInfo -> Rule RawImp
   simpleExpr fname indents
@@ -112,8 +112,8 @@ mutual
                (do n <- unqualifiedName
                    ty <- option
                             Implicit
-                            (do symbol ":"
-                                appExpr fname indents)
+                            (symbol ":"
+                             *> appExpr fname indents)
                    pure (UN n, ty))
 
 
@@ -143,7 +143,7 @@ mutual
            commit
            ns <- sepBy1 (symbol ",") unqualifiedName
            let binders = map (\n => (Just (UN n), Implicit)) ns
-           symbol "."
+           _ <- symbol "."
            scope <- typeExpr fname indents
            pure (pibindAll Implicit binders scope)
 

@@ -8,7 +8,7 @@ data Env : (tm : List Name -> Type) -> List Name -> Type where
      Nil : Env tm []
      (::) : Binder (tm vars) -> Env tm vars -> Env tm (x :: vars)
 
-revOnto : (xs, vs : _) -> reverseOnto xs vs = reverse vs ++ xs
+revOnto : (xs, vs : _) -> List.reverseOnto xs vs = reverse vs ++ xs
 revOnto xs [] = Refl
 revOnto xs (v :: vs)
     = rewrite revOnto (v :: xs) vs in
@@ -28,7 +28,7 @@ revNs (v :: vs) ns
 -- in big environments
 -- Also reversing the names at the end saves significant time over concatenating
 -- when environments get fairly big.
-getBinderUnder : Weaken tm =>
+getBinderUnder : {tm : _} -> Weaken tm =>
                  {vars : _} -> {idx : Nat} ->
                  (ns : List Name) ->
                  (0 p : IsVar x idx vars) -> Env tm vars ->
@@ -39,7 +39,7 @@ getBinderUnder {idx = S k} {vars = v :: vs} ns (Later lp) (b :: env)
     = getBinderUnder (v :: ns) lp env
 
 export
-getBinder : Weaken tm =>
+getBinder : {tm : _} -> Weaken tm =>
             {vars : _} -> {idx : Nat} ->
             (0 p : IsVar x idx vars) -> Env tm vars -> Binder (tm vars)
 getBinder el env = getBinderUnder [] el env

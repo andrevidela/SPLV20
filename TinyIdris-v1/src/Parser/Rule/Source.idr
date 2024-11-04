@@ -6,7 +6,7 @@ import public Parser.Support
 
 import Core.TT
 import Data.List1
-import Data.Strings
+import Data.String
 
 %default total
 
@@ -124,7 +124,7 @@ namespacedIdent
     = terminal "Expected namespaced name"
         (\x => case tok x of
             DotSepIdent ns => Just ns
-            Ident i => Just [i]
+            Ident i => Just (singleton i)
             _ => Nothing)
 
 export
@@ -133,7 +133,7 @@ moduleIdent
     = terminal "Expected module identifier"
         (\x => case tok x of
             DotSepIdent ns => Just ns
-            Ident i => Just [i]
+            Ident i => Just (singleton i)
             _ => Nothing)
 
 export
@@ -168,8 +168,8 @@ init = 0
 
 continueF : SourceEmptyRule () -> (indent : IndentInfo) -> SourceEmptyRule ()
 continueF err indent
-    = do eoi; err
-  <|> do keyword "where"; err
+    = eoi *> err
+  <|> keyword "where" *> err
   <|> do col <- Common.column
          if col <= indent
             then err
@@ -259,9 +259,9 @@ atEndIndent indent
 -- must start, given where the current block entry started
 terminator : ValidIndent -> Int -> SourceEmptyRule ValidIndent
 terminator valid laststart
-    = do eoi
-         pure EndOfBlock
-  <|> do symbol ";"
+    = (eoi *>
+         pure EndOfBlock)
+  <|> symbol ";" *>
          pure (afterSemi valid)
   <|> do col <- column
          afterDedent valid col
@@ -307,7 +307,7 @@ blockEntry valid rule
 blockEntries : ValidIndent -> (IndentInfo -> Rule ty) ->
                SourceEmptyRule (List ty)
 blockEntries valid rule
-     = do eoi; pure []
+     = eoi *> pure []
    <|> do res <- blockEntry valid rule
           ts <- blockEntries (snd res) rule
           pure (fst res :: ts)

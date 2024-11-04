@@ -36,7 +36,7 @@ data Error : Type where
      GenericMsg : String -> Error
      FileErr : String -> FileError -> Error
 
-export
+export covering
 Show Error where
   show (CantConvert env x y)
       = "Type mismatch: " ++ show x ++ " and " ++ show y
@@ -116,6 +116,10 @@ export %inline
 pure : a -> Core a
 pure x = MkCore (pure (pure x))
 
+export %inline
+(>>) : Core a -> (Core b) -> Core b
+(>>) a b = do _ <- a ; b
+
 export
 (<*>) : Core (a -> b) -> Core a -> Core b
 (<*>) (MkCore f) (MkCore a) = MkCore [| f <*> a |]
@@ -153,7 +157,7 @@ traverse f xs = traverse' f xs []
 
 export
 traverseList1 : (a -> Core b) -> List1 a -> Core (List1 b)
-traverseList1 f (x :: xs) = [| f x :: traverse f xs |]
+traverseList1 f (x ::: xs) = [| f x ::: traverse f xs |]
 
 export
 traverseVect : (a -> Core b) -> Vect n a -> Core (Vect n b)
@@ -174,7 +178,7 @@ traverse_ f (x :: xs)
 
 export
 traverseList1_ : (a -> Core b) -> List1 a -> Core ()
-traverseList1_ f (x :: xs) = do
+traverseList1_ f (x ::: xs) = do
   f x
   traverse_ f xs
 

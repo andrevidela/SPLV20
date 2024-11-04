@@ -71,7 +71,7 @@ data Pat : Type where
      PLoc : Name -> Pat
      PUnmatchable : Term [] -> Pat
 
-export
+export covering
 Show Pat where
   show (PCon n t a args) = show n ++ show (t, a) ++ show args
   show (PLoc n) = "{" ++ show n ++ "}"
@@ -104,7 +104,7 @@ mkTerm vars (PUnmatchable tm) = embed tm
 -- Show instances
 
 mutual
-  export
+  export covering
   {vars : _} -> Show (CaseTree vars) where
     show (Case {name} idx prf ty alts)
         = "case " ++ show name ++ "[" ++ show idx ++ "] : " ++ show ty ++ " of { " ++
@@ -113,7 +113,7 @@ mutual
     show (Unmatched msg) = "Error: " ++ show msg
     show Impossible = "Impossible"
 
-  export
+  export covering
   {vars : _} -> Show (CaseAlt vars) where
     show (ConCase n tag args sc)
         = show n ++ " " ++ showSep " " (map show args) ++ " => " ++

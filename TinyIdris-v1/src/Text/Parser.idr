@@ -17,7 +17,7 @@ match : (Eq k, TokenKind k) =>
         Grammar (Token k) True (TokType kind)
 match kind = terminal "Unrecognised input" $
   \(Tok kind' text) => if kind' == kind
-                          then Just $ tokValue kind text
+                          then Just $ TokValue kind text
                           else Nothing
 
 ||| Optionally parse a thing, with a default value if the grammar doesn't
@@ -41,7 +41,7 @@ optional p = option Nothing (map Just p)
 ||| which option succeeded. If both would succeed, the left option
 ||| takes priority.
 export
-choose : {c1, c2 : Bool} -> 
+choose : {c1, c2 : Bool} ->
          (l : Grammar tok c1 a) ->
          (r : Grammar tok c2 b) ->
          Grammar tok (c1 && c2) (Either a b)
@@ -64,7 +64,7 @@ choiceMap {c} f xs = foldr (\x, acc => rewrite sym (andSameNeutral c) in
 ||| Try each grammar in a container until the first one succeeds.
 ||| Fails if the container is empty.
 export
-choice : Foldable t => 
+choice : Foldable t =>
          {c : Bool} ->
          t (Grammar tok c a) ->
          Grammar tok c a
@@ -154,7 +154,7 @@ mutual
               (skip : Grammar tok True s) ->
               (p : Grammar tok c a) ->
               Grammar tok True a
-  afterSome skip p = do skip
+  afterSome skip p = do _ <- skip
                         afterMany skip p
 
   ||| Parse zero or more instance of `skip` until `p` is encountered,

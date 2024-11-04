@@ -10,7 +10,7 @@ import Core.Value
 
 import Data.LengthMatch
 import Data.List
-import Data.Strings
+import Data.String
 
 import Decidable.Equality
 
@@ -22,6 +22,7 @@ data ArgType : List Name -> Type where
      Unknown : ArgType vars
          -- arg's type is not yet known due to a previously stuck argument
 
+covering
 {ns : _} -> Show (ArgType ns) where
   show (Known t) = "Known " ++ show t
   show (Stuck t) = "Stuck " ++ show t
@@ -72,7 +73,7 @@ updatePats {todo = pvar :: ns} env (NBind _ (Pi _ farg) fsc) (p :: ps)
          Unknown =>
             do defs <- get Ctxt
                empty <- clearDefs defs
-               pure (record { argType = Known !(quote empty env farg) } p
+               pure ({ argType := Known !(quote empty env farg) } p
                           :: !(updatePats env !(fsc defs (toClosure env (Ref Bound pvar))) ps))
          _ => pure (p :: ps)
 updatePats env nf (p :: ps)
@@ -80,7 +81,7 @@ updatePats env nf (p :: ps)
          Unknown =>
             do defs <- get Ctxt
                empty <- clearDefs defs
-               pure (record { argType = Stuck !(quote empty env nf) } p :: ps)
+               pure ({ argType := Stuck !(quote empty env nf) } p :: ps)
          _ => pure (p :: ps)
 
 substInPatInfo : {pvar, vars, todo : _} ->
@@ -90,14 +91,14 @@ substInPatInfo : {pvar, vars, todo : _} ->
                  Core (PatInfo pvar vars, NamedPats vars todo)
 substInPatInfo {pvar} {vars} n tm p ps
     = case argType p of
-           Known ty => pure (record { argType = Known (substName n tm ty) } p, ps)
+           Known ty => pure ({ argType := Known (substName n tm ty) } p, ps)
            Stuck fty =>
              do defs <- get Ctxt
                 empty <- clearDefs defs
                 let env = mkEnv vars
                 case !(nf defs env (substName n tm fty)) of
                      NBind _ (Pi _ farg) fsc =>
-                       pure (record { argType = Known !(quote empty env farg) } p,
+                       pure ({ argType := Known !(quote empty env farg) } p,
                                  !(updatePats env
                                        !(fsc defs (toClosure env
                                              (Ref Bound pvar))) ps))
@@ -259,7 +260,6 @@ checkGroupMatch (CName x tag) ps (ConGroup {newargs} x' tag' (MkPatClause pvs pa
                             (Just Refl, Yes Refl) => ConMatch prf
                             _ => NoMatch
 checkGroupMatch (CName x tag) ps _ = NoMatch
-checkGroupMatch _ _ _ = NoMatch
 
 data PName : Type where
 
@@ -305,7 +305,7 @@ newPats : (pargs : List Pat) -> LengthMatch pargs ns ->
           NamedPats vars ns
 newPats [] NilMatch rest = []
 newPats (newpat :: xs) (ConsMatch w) (pi :: rest)
-  = record { pat = newpat} pi :: newPats xs w rest
+  = { pat := newpat} pi :: newPats xs w rest
 
 updateNames : List (Name, Pat) -> List (Name, Name)
 updateNames = mapMaybe update
@@ -317,7 +317,7 @@ updateNames = mapMaybe update
 updatePatNames : List (Name, Name) -> NamedPats vars todo -> NamedPats vars todo
 updatePatNames _ [] = []
 updatePatNames ns (pi :: ps)
-    = record { pat $= update } pi :: updatePatNames ns ps
+    = { pat $= update } pi :: updatePatNames ns ps
   where
     update : Pat -> Pat
     update (PCon n i a ps) = PCon n i a (map update ps)
@@ -641,7 +641,7 @@ mutual
            pure (Just !(varRule fn vs fallthrough))
   mixture fn {a} {todo} NoClauses err
       = pure err
--- 
+--
 
 mkPatClause : {auto c : Ref Ctxt Defs} ->
               Name ->

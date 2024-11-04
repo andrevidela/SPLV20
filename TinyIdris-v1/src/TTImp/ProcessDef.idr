@@ -28,7 +28,7 @@ processClause : {auto c : Ref Ctxt Defs} ->
 processClause (PatClause lhs rhs)
     = do -- Check the LHS
          (lhstm, lhsty) <- checkTerm [] lhs Nothing
-         -- Get the pattern variables from the LHS, and the expected type, 
+         -- Get the pattern variables from the LHS, and the expected type,
          -- and check the RHS in that context
 
          (vars ** (env, lhsenv, rhsexp)) <-
@@ -50,5 +50,5 @@ processDef n clauses
          (args ** tree) <- getPMDef n (type gdef) chkcs
 
          -- Update the definition with the compiled tree
-         updateDef n (record { definition = PMDef args tree })
+         updateDef n ({ definition := PMDef args tree })
          coreLift $ putStrLn $ "Processed " ++ show n

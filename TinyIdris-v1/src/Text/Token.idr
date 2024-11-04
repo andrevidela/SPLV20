@@ -18,23 +18,23 @@ module Text.Token
 |||   tokValue SKComma x = ()
 ||| ```
 public export
-interface TokenKind (k : Type) where
+interface TokenKind (0 k : Type) where
   ||| The type that a token of this kind converts to.
   TokType : k -> Type
 
   ||| Convert a recognised string into a value. The type is determined
   ||| by the kind of token.
-  tokValue : (kind : k) -> String -> TokType kind
+  TokValue : (kind : k) -> String -> TokType kind
 
 ||| A token of a particular kind and the text that was recognised.
 public export
 record Token k where
   constructor Tok
-  kind : k
-  text : String
+  Kind : k
+  Text : String
 
 ||| Get the value of a `Token k`. The resulting type depends upon
 ||| the kind of token.
 public export
-value : TokenKind k => (t : Token k) -> TokType (kind t)
-value (Tok k x) = tokValue k x
+value : TokenKind kn => (t : Token kn) -> TokType (Kind t)
+value (Tok k x) = TokValue k x
