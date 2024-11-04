@@ -3,6 +3,15 @@ module Core.TT
 import Data.List
 import Decidable.Equality
 
+import Deriving.Show
+
+%language ElabReflection
+
+%hide Reflection.TT.Name
+%hide Reflection.TT.NameType
+%hide Language.Reflection.TT.showSep
+%hide Language.Reflection.TT.IsVar
+
 -- In Idris2, this is defined in Core.Name
 public export
 data Name : Type where
@@ -92,6 +101,10 @@ public export
 data PiInfo : Type where
      Implicit : PiInfo
      Explicit : PiInfo
+
+%hint public export
+impPiInfo : Show PiInfo
+impPiInfo = %runElab derive
 
 public export
 data Binder : Type -> Type where
@@ -290,7 +303,7 @@ resolveNames vars tm = tm
 namespace SubstEnv
   public export
   data SubstEnv : List Name -> List Name -> Type where
-       Nil : SubstEnv [] vars
+       Nil  : SubstEnv [] vars
        (::) : Term vars ->
               SubstEnv ds vars -> SubstEnv (d :: ds) vars
 
@@ -311,7 +324,8 @@ namespace SubstEnv
   find {outer = x :: xs} (Later p) env = weaken (find p env)
 
   substEnv : {drop, vars, outer : _} ->
-             SubstEnv drop vars -> Term (outer ++ (drop ++ vars)) ->
+             SubstEnv drop vars ->
+             Term (outer ++ (drop ++ vars)) ->
              Term (outer ++ vars)
   substEnv env (Local _ prf)
       = find prf env

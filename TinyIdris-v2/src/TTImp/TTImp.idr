@@ -2,6 +2,12 @@ module TTImp.TTImp
 
 import Core.TT
 
+import Deriving.Show
+
+%hide Reflection.TT.Name
+
+%language ElabReflection
+
 public export
 data RawImp : Type where
      IVar : Name -> RawImp
@@ -17,26 +23,44 @@ data RawImp : Type where
      Implicit : RawImp
      IType : RawImp
 
+%hint export
+impRawImp : Show RawImp
+impRawImp = %runElab derive
+
 public export
 data ImpTy : Type where
      MkImpTy : (n : Name) -> (ty : RawImp) -> ImpTy
 
+%hint export
+impTy : Show ImpTy
+impTy = %runElab derive
+
 public export
 data ImpClause : Type where
      PatClause : (lhs : RawImp) -> (rhs : RawImp) -> ImpClause
+%hint export
+impClause : Show ImpClause
+impClause = %runElab derive
 
 public export
 data ImpData : Type where
-     MkImpData : (n : Name) -> 
+     MkImpData : (n : Name) ->
                  (tycon : RawImp) -> -- type constructor type
                  (datacons : List ImpTy) -> -- constructor type declarations
                  ImpData
+%hint export
+impData : Show ImpData
+impData = %runElab derive
 
 public export
 data ImpDecl : Type where
      IClaim : ImpTy -> ImpDecl
      IData : ImpData -> ImpDecl
      IDef : Name -> List ImpClause -> ImpDecl
+
+%hint export
+impShow : Show ImpDecl
+impShow = %runElab derive
 
 export
 apply : RawImp -> List RawImp -> RawImp
